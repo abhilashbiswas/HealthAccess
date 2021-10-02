@@ -5,14 +5,14 @@ Created on Sat Oct  2 17:32:08 2021
 @author: vidisha chowdhury
 """
 
-import requests
-import json
-import pandas as pd
-
 # Using NPPES NPI
 
 
 def main():
+    
+    import requests
+    import json
+    import pandas as pd
 
     headers = {'Content-Type': 'application/json'}
     
