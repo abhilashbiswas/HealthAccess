@@ -96,11 +96,13 @@ def hospital_list():
     
     hospital_data.to_csv('hospital_list.csv', index = False)
     
-    return hospital_data
+    hospital_data["Category"].drop_duplicates().to_csv('hospital_categories.csv', index = False)
+    
+    return hospital_data 
     
 
 if __name__ == "__main__":
-    hospital_data = hospital_list()
+    hospital_list()
 
 
 
