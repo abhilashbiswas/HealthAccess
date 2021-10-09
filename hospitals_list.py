@@ -14,6 +14,7 @@ def hospital_list():
     import requests
     import json
     import pandas as pd
+    import re
 
     headers = {'Content-Type': 'application/json'}
     
@@ -94,12 +95,104 @@ def hospital_list():
     
     hospital_data.drop_duplicates(inplace=True)
     
-    hospital_data.to_csv('hospital_list.csv', index = False)
+    """Step 1: Identifying the categories:
     
-    hospital_data["Category"].drop_duplicates().to_csv('hospital_categories.csv', index = False)
+    1. Surgery: surge
+    2. Dental Care: Dent|prostho
+    3. Mental Health and Rehabilitation: mental|psch|rehab|counsel 
+    4. Pharmacies: Pharma 
+    5. Eye and Ear Care: Hear|eye|opt|Audio|Ophthal 
+    6. Preventive Care: Preventive 
+    7. Women & Reproductive Care: Gynec
+    8. Radiology: Radio|Image|Diagnos|Lab|Pathology
+    9. chil|pedia: Pediatrician
+    10.chiro:Chiropractitioner
+    11.home:Homecare Service
+    12.derma: Dermatologist
+    13.General medical facility: nursing facilities|general hospitals|family|community|welfare
+    14.Specialised Internal Medical Care: Internal 
+    15.Podiatrist: Podiatrist
+    16.Orthopaedics: Prosthetics|Ortho
+    17.Anesthesia Specialist: Anesthesiology
+    18.Physical Therapists: Physical Therapy|Acup|Therapist
+    19.Allergy: Allergy|Immun
+    20.Medical Equipments and Devices: Equipment|Supplies
+    21.Foster care: Foster
+    22.Emergency and Ambulance: Ambulance|Emergency|urgent
+    23.Local Education Agency: Education
+    24.Renal Disease Treatment: renal
+    25.Otolaryngology
+    26.Assisted Living Facility:assisted
+    27.Center Ambulatory Surgical:ambulatory
+    28.Center Federally Qualified Health Center: federal
+    29.urology: urology
+   
+    STEP 2: Look for categories that match each of these keywords"""    
     
-    return hospital_data 
     
+    categories = hospital_data[["Category"]].drop_duplicates()
+    
+    keywords = ["surge", r"^Dent|prostho", "mental|psych|rehab|counsel","Pharma",\
+            "Hear|eye|opt|Audio|Ophthal", "Preventive", "Gynec",\
+                "Radio|Image|Diagnos|lab|pathology", "chil|pedia", "chiro", "home",\
+                    "derma", "nursing facility|General|family|community|welfare|nursing",\
+                        "internal", "Podiatrist", "Prosthetics|Ortho",\
+                            "Anesthesiology", "Physical Therapy|Acup|Therapist",\
+                                "Allergy|Immun", "Equipment|Supplies",\
+                                    "Foster", "Ambulance|Emergency|Urgent", "Education",\
+                                        "Renal", "Otolaryngology", "assisted", "ambulatory",\
+                                            "federal", r"^urology"]
+    mapping = {}
+    
+    
+    
+    for k in keywords:
+        for i in categories["Category"]:
+            if re.search(k, i, flags = re.IGNORECASE) != None:
+                print(k + ' : ' + i)
+                if i in mapping.keys() and k not in mapping[i]:
+                    mapping[i].append(k)
+                if i not in mapping.keys():
+                    mapping[i] = [k]
+
+    # Final categories visible to users
+    final_cat = {'surge' : 'Surgery',  r"^Dent|prostho" : 'Dental Care',\
+            'mental|psych|rehab|counsel' : 'Mental Health and Rehabilitation',\
+                'Pharma':'Pharmacy','Hear|eye|opt|Audio|Ophthal': 'Eye and Ear Care',\
+                    'Preventive': 'Preventive Care', \
+                        'Gynec': 'Women & Reproductive Care',\
+                            'Radio|Image|Diagnos|lab|pathology': 'Radiology', 'chil|pedia':'Pediatrician',\
+                                'chiro':'Chiropractitioner', 'home':'Homecare Service',\
+                                    'derma':'Dermatologist',
+                                    'nursing facility|General|family|community|welfare|nursing':'General medical facility',\
+                                        'internal':'Specialised Internal Medical Care',\
+                                            'Podiatrist':'Podiatrist','Prosthetics|Ortho':'Orthopaedics',\
+                                                'Anesthesiology':'Anesthesia Specialist',\
+                                                    'Physical Therapy|Acup|Therapist':'Physical Therapy',\
+                                                        'Allergy|Immun':'Allergy',\
+                                                            'Equipment|Supplies':'Equipment and Supplies',\
+                                                                'Foster':'Foster Care',\
+                                                                    'Ambulance|Emergency|Urgent':'Ambulance and Emergency Service',\
+                                                                        'Education':'Local Education Agency',\
+                                                                            'Renal':'Renal Disease Treatment',\
+                                                                                'Otolaryngology':'Otolaryngology',\
+                                                                                    'assisted':'Assisted Living Facility',\
+                                                                                        'ambulatory':'Center Ambulatory Surgical',\
+                                                                                            'federal':'Center Federally Qualified Health Center',\
+                                                                                                r'^urology':'urology'}
+        
+    
+    for i in mapping.keys():
+        a = hospital_data["Category"] == i
+        hospital_data.loc[a,"Keywords"] = ", ".join([final_cat[mapping[i][j]] \
+                                                    for j in range(len(mapping[i]))])
+    
+            
+    hospital_data["Keywords_1"] = hospital_data["Keywords"].str.split(',', expand=True)[0]
+    hospital_data["Keywords_2"] = hospital_data["Keywords"].str.split(',', expand=True)[1]
+    hospital_data.to_csv('hospital_list_with_keywords.csv', index = False)
+
+   
 
 if __name__ == "__main__":
     hospital_list()
