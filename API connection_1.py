@@ -24,7 +24,7 @@ def API_distance():
     import json
     
     #Keys
-    API_KEY = 'AIzaSyABxu5Q65XqI2ndTkA58OMs75ahlumci10'
+    API_KEY = ''
     
     #User inputs
     user_address = input('Please enter your current street address: ')
